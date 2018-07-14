@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import abc.da.Dac;
+import abc.da.ICSC;
 import abc.da.IDac;
 import model3.City;
 import model3.Pic;
@@ -31,8 +32,8 @@ import model3.Trip;
 public class CSC extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-//	@EJB(beanName = "TripBe")
-	IDac TBL;
+	// @EJB(beanName = "TripBe")
+	ICSC TBL;
 
 	private static final String CP = "/fileOne.jsp";
 
@@ -43,7 +44,7 @@ public class CSC extends HttpServlet {
 	public CSC() {
 		super();
 		// TODO Auto-generated constructor stub
-		TBL=new Dac();
+		TBL = new Dac();
 	}
 
 	/**
@@ -53,6 +54,7 @@ public class CSC extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		Map<String, Serializable> ti = new HashMap<String, Serializable>();
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 		String action = request.getParameter("myaction");
 		String forward = "";
@@ -60,8 +62,8 @@ public class CSC extends HttpServlet {
 		if ("listofusers".equalsIgnoreCase(action)) {
 			List<Traveler> tr = TBL.getTravellers();
 			request.setAttribute("user", tr);
-			Map<String, Serializable> ti = new HashMap<String, Serializable>();
-			if (!(tr == null)) {
+
+			if (tr.size() > 0) {
 				ti.put("ind", tr.get(0).getIdtraveler());
 				ti.put("tr", tr.get(0));
 			}
@@ -69,34 +71,40 @@ public class CSC extends HttpServlet {
 			forward = CP;
 		}
 		if ("true".equals(init)) {
+
 			List<City> lc = TBL.get3common();
-			Map<String, Object> m1 = new HashMap<String, Object>();
-			m1.put("cname", lc.get(0).getCityName());
-			m1.put("cind", lc.get(0).getIdcities());
-			Map<String, Object> m2 = new HashMap<String, Object>();
-			m2.put("cname", lc.get(1).getCityName());
-			Map<String, Object> m3 = new HashMap<String, Object>();
-			m3.put("cname", lc.get(2).getCityName());
-			List<Trip> city1 = TBL.GetTripsByCity(lc.get(0).getIdcities() + "");
-			m1.put("travels", city1);
-			List<Trip> city2 = TBL.GetTripsByCity(lc.get(1).getIdcities() + "");
-			List<Trip> city3 = TBL.GetTripsByCity(lc.get(2).getIdcities() + "");
-			m2.put("travels", city2);
-			m3.put("travels", city3);
-			m2.put("cind", lc.get(1).getIdcities());
-			m3.put("cind", lc.get(2).getIdcities());
-			request.setAttribute("c1", m1);
-			request.setAttribute("c2", m2);
-			request.setAttribute("c3", m3);
-			List<Trip> lt = TBL.get3uniq();
-			request.setAttribute("tu", lt);
-			List<Pic> lpc = TBL.get3pics();
-			request.setAttribute("lpc", lpc);
-			List<City> cityl = TBL.getAllCities();
-			request.setAttribute("cities", cityl);
+			if (lc.size() > 2) {
+				Map<String, Object> m1 = new HashMap<String, Object>();
+				m1.put("cname", lc.get(0).getCityName());
+				m1.put("cind", lc.get(0).getIdcities());
+				Map<String, Object> m2 = new HashMap<String, Object>();
+				m2.put("cname", lc.get(1).getCityName());
+				Map<String, Object> m3 = new HashMap<String, Object>();
+				m3.put("cname", lc.get(2).getCityName());
+				List<Trip> city1 = TBL.GetTripsByCity(lc.get(0).getIdcities() + "");
+				m1.put("travels", city1);
+				List<Trip> city2 = TBL.GetTripsByCity(lc.get(1).getIdcities() + "");
+				List<Trip> city3 = TBL.GetTripsByCity(lc.get(2).getIdcities() + "");
+				m2.put("travels", city2);
+				m3.put("travels", city3);
+				m2.put("cind", lc.get(1).getIdcities());
+				m3.put("cind", lc.get(2).getIdcities());
+				request.setAttribute("c1", m1);
+				request.setAttribute("c2", m2);
+				request.setAttribute("c3", m3);
+				List<Trip> lt = TBL.get3uniq();
+				request.setAttribute("tu", lt);
+				List<Pic> lpc = TBL.get3pics();
+				request.setAttribute("lpc", lpc);
+				List<City> cityl = TBL.getAllCities();
+				request.setAttribute("cities", cityl);
+			}
 			forward = CP;
 		}
-
+		if (ti.isEmpty()) {
+			ti.put("ind", -1);
+			ti.put("tr", null);
+		}
 		RequestDispatcher dispatcher = request.getRequestDispatcher(forward);
 		dispatcher.forward(request, response);
 
@@ -130,12 +138,12 @@ public class CSC extends HttpServlet {
 				java.util.Date date = sdf.parse(bd);
 				Date sqld = new java.sql.Date(date.getTime());
 				int di = TBL.addTraveller(nm, sqld);
-			//	request.setAttribute("ti", di);
+				// request.setAttribute("ti", di);
 				ti.put("ind", di);
 				ti.put("tr", TBL.getTravelerbyId(di + ""));
 				setuser = true;
 				session1.removeAttribute("ti");
-				session1.setAttribute("ti",ti);
+				session1.setAttribute("ti", ti);
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -159,11 +167,12 @@ public class CSC extends HttpServlet {
 			try {
 				java.util.Date date = sdf.parse(trid);
 				Date sqld = new java.sql.Date(date.getTime());
-			/*	int mon = Integer.parseInt(trm);
-				int day = Integer.parseInt(trdy);
-				int trsi = Integer.parseInt(trt);*/
+				/*
+				 * int mon = Integer.parseInt(trm); int day = Integer.parseInt(trdy); int trsi =
+				 * Integer.parseInt(trt);
+				 */
 				TBL.createTripStrings(ci, sqld, ti2, trdy, trm, triho, trt);
-				//TBL.createTrip(ci, sqld, ti2, day, mon, triho, null, trsi);
+				// TBL.createTrip(ci, sqld, ti2, day, mon, triho, null, trsi);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -176,66 +176,61 @@
 							<strong>Picture added:</strong>
 						</div>
 						<div class="col-sm-7">
-<c:if test="${stp ne 1}">
+<c:if test="${stp eq 2}">
 							<%
 								String action = request.getParameter("todo");
-								Bla11 td = (Bla11) session.getAttribute("todo");
-								if (td == null) {
-									try {
-										final Properties jndiProps = new Properties();
+													Stac td = (Stac) session.getAttribute("td");
+													if (td == null) {
+														try {
+														    td =new Stac();
+															session.setAttribute("td", td);
+														} catch (Exception ex) {
+															ex.printStackTrace();
+														}
+													}
+													if (action != null) {
+														if (action.equals("AddItem")) {
+															String item = request.getParameter("item");
+															if (!item.equals("")) {
+																td.addItem(item, (TripSightseeing) session.getAttribute("worksight"));
+																/* 	out.println("item " + item + " added"); */
+																request.setAttribute("scrollTo", "addpics");
 
-										jndiProps.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
-										InitialContext ctx = new InitialContext(jndiProps);
-										td = (Bla11) ctx.lookup("java:global/myDWP/Bla11!Imgg.Bla11");
-										//	td = new ImgB();
-										session.setAttribute("todo", td);
-									} catch (Exception ex) {
-										ex.printStackTrace();
-									}
-								}
-								if (action != null) {
-									if (action.equals("AddItem")) {
-										String item = request.getParameter("item");
-										if (!item.equals("")) {
-											td.addItem(item, (TripSightseeing) session.getAttribute("worksight"));
-											/* 	out.println("item " + item + " added"); */
-											request.setAttribute("scrollTo", "addpics");
+															}
+														} else if (action.equals("ListItems")) {
+															Vector<Map> items = td.listItems();
+															/* 		out.println("items: "); */
+															for (int x = 0; x != items.size(); x++) {
+																String addrspic = (String) items.elementAt(x).get("addr");
+																out.println("<br>" + (x + 1) + ". " + items.elementAt(x).get("trs") + ", "
+																		+ (addrspic.length() >= 6
+																				? "..." + addrspic.substring(addrspic.length() - 5)
+																				: addrspic));
+																out.print("<a href=tripEditor.jsp?todo=remove&itemnum=" + x + ">remove</a>");
+																request.setAttribute("scrollTo", "addpics");
+															}
+															request.setAttribute("scrollTo", "addpics");
 
-										}
-									} else if (action.equals("ListItems")) {
-										Vector<Map> items = td.listItems();
-										/* 		out.println("items: "); */
-										for (int x = 0; x != items.size(); x++) {
-											String addrspic = (String) items.elementAt(x).get("addr");
-											out.println("<br>" + (x + 1) + ". " + items.elementAt(x).get("trs") + ", "
-													+ (addrspic.length() >= 6
-															? "..." + addrspic.substring(addrspic.length() - 5)
-															: addrspic));
-											out.print("<a href=tripEditor.jsp?todo=remove&itemnum=" + x + ">remove</a>");
-											request.setAttribute("scrollTo", "addpics");
-										}
-										request.setAttribute("scrollTo", "addpics");
+														} else if ("ClearList".equals(action)) {
+															td.clearItems();
+															out.println("items Cleared");
+															request.setAttribute("scrollTo", "addpics");
 
-									} else if ("ClearList".equals(action)) {
-										td.clearItems();
-										out.println("items Cleared");
-										request.setAttribute("scrollTo", "addpics");
+														} else if ("todb".equals(action)) {
+															RequestDispatcher rd = request.getRequestDispatcher("/EditorController");
+															//request.setAttribute("td", td);
+															request.setAttribute("action", action);
+															request.setAttribute("td1",td);															/*    request.setAttribute("trp", (String)(session.getAttribute("tri")+""));
+															*/ //session.removeAttribute("todo");
+															rd.forward(request, response);
+														} else if ("remove".equals(action)) {
+															String item = request.getParameter("itemnum");
+															td.removeItem(item);
+															request.setAttribute("scrollTo", "addpics");
 
-									} else if ("todb".equals(action)) {
-										RequestDispatcher rd = request.getRequestDispatcher("/EditorController");
-										request.setAttribute("td", td);
-										request.setAttribute("action", action);
-										/*    request.setAttribute("trp", (String)(session.getAttribute("tri")+""));
-										*/ session.removeAttribute("todo");
-										rd.forward(request, response);
-									} else if ("remove".equals(action)) {
-										String item = request.getParameter("itemnum");
-										td.removeItem(item);
-										request.setAttribute("scrollTo", "addpics");
+														}
 
-									}
-
-								}
+													}
 							%>
 
 </c:if>
